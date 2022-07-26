@@ -15,3 +15,10 @@ Progress Update #2 7/24/2022 :
 
 Goals #2: 
 - Complete the main sql commands and important functions for the functionality of the application
+
+Progress Update #2 7/26/2022 :
+- Finished the main sql commands and data Controls mostly works
+- Started laying out the swing frame code for the front end of the application
+
+Goals #3:
+- Finish setting up the frames and laying out the buttons, fields, and text for the login frame
