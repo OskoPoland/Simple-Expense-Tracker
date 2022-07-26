@@ -20,7 +20,7 @@ class dataControls {
     private String authKey;
 
     //createConnection: establishes connection to local host that is hosting the server
-    public Connection createConnection() {
+    private Connection createConnection() {
         //debug statment
         System.out.println("Establishing Connection to JBDC Server");
 
@@ -55,16 +55,21 @@ class dataControls {
     
     //authenticateUser: verify username and password and return unique account ID
     public boolean authenticateUser(String username, String password) {
-        String queryCommand = "select ID from AUTHENTICATION where USERNAME=" + username + " and PASSWORD=" + password;
+        String queryCommand = "SELECT UID FROM AUTHENTICATION WHERE USERNAME LIKE ? AND PASSWORD LIKE ?";
         //Test Statement - Delete Once Done
         System.out.println("The auth command is: " + queryCommand);
         try {
-            ResultSet rset = stmt.executeQuery(queryCommand);
-            authKey = rset.getString("ID");
-            return true;
+            PreparedStatement prpSt = conn.prepareStatement(queryCommand);
+            prpSt.setString(1, username);
+            prpSt.setString(2, password);
+
+            ResultSet rset = prpSt.executeQuery();
+
+            while(rset.next()) {return true;};
+
+            return false;
         } catch (SQLException sqle) {
             sqle.printStackTrace();
-            System.out.println("There was an error authenticating account");
             return false;
         }
     }
@@ -77,7 +82,6 @@ class dataControls {
         int ID = (int)Math.floor(Math.random()*(max-min+1)+min);
         String insertQueryCommand = "INSERT INTO authentication VALUES (?, ?, ?) ";
         
-
         try {
             stmt = conn.createStatement();
             if (!verifyUsername(username)) {
@@ -100,27 +104,69 @@ class dataControls {
 
     //verifyUsername: verifies the username of the user
     private boolean verifyUsername(String username) {
-        String verifyUser = "SELECT username FROM AUTHENTICATION WHERE " + username + " EXISTS";
+        String verifyUser = "SELECT username FROM AUTHENTICATION WHERE username LIKE ?";
+        //SELECT * FROM q_table, choices, answers  WHERE questions.QID=? AND choices.CID=? AND answers.AID=?
+        System.out.println("checking");
         try {
-            stmt.executeUpdate(verifyUser);
-            return true;
+            PreparedStatement prpSt = conn.prepareStatement(verifyUser);
+            prpSt.setString(1, username);
+            ResultSet rset = prpSt.executeQuery();
+            
+            while(rset.next()) {return true;};
+
+            return false;
         } catch(SQLException sqle) {
-            //sqle.printStackTrace();
+            sqle.printStackTrace();
             return false;
         }
     }
 
     //verifyID: verifies the ID of user
     private Boolean verifyID(int ID) {
-        String verifyID = "SELECT ID FROM Authentication WHERE " + ID + " EXISTS";
+        String verifyID = "SELECT UID FROM Authentication WHERE UID LIKE ?";
         try {
-            stmt.executeUpdate(verifyID);
-            return true;
+            PreparedStatement prpSt = conn.prepareStatement(verifyID);
+            prpSt.setInt(1, ID);
+            ResultSet rset = prpSt.executeQuery();
+
+            while(rset.next()) {return true;}
+
+
+            return false;
         } catch (SQLException sqle) {
-            //sqle.printStackTrace();
+            sqle.printStackTrace();
             return false;
         }
     } 
+
+    //addExpense: adds an expense to the SQL database
+    public void addExpense(String expenseName, Double expenseAmount, int ID) {
+        String addExpenseQuery = "INSERT INTO Expenses ( UID, EXPENSE, EXPENSE_COST) VALUES (?, ?, ?) ";
+        try {
+            PreparedStatement prpSt = conn.prepareStatement(addExpenseQuery);
+            prpSt.setInt(1, ID);
+            prpSt.setString(2, expenseName);
+            prpSt.setDouble(3, expenseAmount);
+            prpSt.executeUpdate();            
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+        }
+    }
+
+    //deleteExpense: removes an expense from the database
+    public void deleteExpense( String expenseName, int ID) {
+        String deleteExpenseQuery = "DELETE FROM Expenses WHERE EXPENSE LIKE ? AND UID LIKE ?";
+        try {
+            PreparedStatement prpSt = conn.prepareStatement(deleteExpenseQuery);
+            prpSt.setString(1, expenseName);
+            prpSt.setInt(2, ID);
+            prpSt.executeUpdate();
+            System.out.println("Expense Deleted");
+        } catch (SQLException sqle) {
+            sqle.printStackTrace();
+            System.exit(1);
+        }
+    }
 
     
     public Float retreiveTotalCosts(String setMonth) {
@@ -166,39 +212,31 @@ class dataControls {
         }
     }
 
-    //addExpense: adds an expense to the SQL database
-    public void addExpense(String expenseName, Float expenseAmount, String ID) {
-        //include function to order expenses from greatest to least
-        //create query
-        String addExpenseQuery = "INSERT INTO Expenses ( ID, expense_name, amount) VALUES (" + ID +"," + expenseName + "," + expenseAmount + ")";
-        try {
-            stmt.executeUpdate(addExpenseQuery);
-        } catch (SQLException sqle) {
-            sqle.printStackTrace();
-        }
-    }
+    
 
     //This function will remove an expense by name CASE SENSITIVE
     //If this is done then the other gui update functions have to be done to match changes
-    public void deleteExpense( String expenseName, String ID) {
-        String deleteExpenseQuery = "DELETE FROM Expenses WHERE " + "expense_name=" + expenseName + "ID=" + ID;
-        try {
-            stmt.executeUpdate(deleteExpenseQuery);
-        } catch (SQLException sqle) {
-            sqle.printStackTrace();
-            System.exit(1);
-        }
-    }
+    
 
     //When the object is instantiated then a connection is established. From there the rest of the functions are non-static
     //because they should be callable before or after a connection is created
     public static void main(String args[]) {
         dataControls dc = new dataControls();
-        // System.out.println("Establishing a connection");
-        // dc.createConnection();
-        System.out.println("Creating user arye pass aa");
-        dc.createUser("arye", "aaa");
-        dc.closeConnection();
+        // --DATABSE CONNECTION CONTROLS -- \\
+        //System.out.println("Establishing a connection");
+        //dc.createConnection();         - WORKING 
+
+        // --LOG IN OUT CONTROLS -- \\
+        //dc.verifyID(222347);           - WORKING
+        //dc.verifyUsername("arye");     - WORKING
+        //dc.createUser("arye", "aaa");  - WORKING
+        //dc.authenticateUser("arye", "aaa");   - WORKING
+
+        // --EXPENSE MANAGEMENT CONTROLS -- \\
+        //dc.addExpense("expense", 65.42, 222347); - WORKING
+        //dc.deleteExpense("p", 222347);           - WORKING
+
+        dc.closeConnection(); //         - WORKING
     }
 }
  
