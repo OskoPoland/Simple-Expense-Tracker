@@ -22,3 +22,9 @@ Progress Update #2 7/26/2022 :
 
 Goals #3:
 - Finish setting up the frames and laying out the buttons, fields, and text for the login frame
+
+Prog Update #4 7/27/2022:
+- The swing UI is gonna be a bit more complicated so it has moved around but the buttons and such have been laid out but nothing is fixed or tested yet
+
+Goals #4:
+- Continue working on the Swing GUI and figure out the graph stuff
