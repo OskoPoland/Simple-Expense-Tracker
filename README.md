@@ -28,3 +28,13 @@ Prog Update #4 7/27/2022:
 
 Goals #4:
 - Continue working on the Swing GUI and figure out the graph stuff
+
+Prog Update #5 7/30/2022:
+- Reorganized the code to represent the MVC organization model
+- Finalized the frame for the login screen. I will do some looks updates in the future but it is functional currently
+- Finalized the frame for the account creation. I will do some looks updates in the future but it is functional currently.
+
+Goals #5:
+- Start working on the expense frame and figure out how it will be organized
+- Continue looking into the JChart module to create the expense chart and decide on it's features and how it will fit in with the MVC model
+
