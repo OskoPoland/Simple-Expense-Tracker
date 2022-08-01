@@ -1,5 +1,6 @@
-# Simple-Expense-Tracker
-Just a simple java program to track expenses with a Swing UI
+# Simple-Expense-Tracker By Arye Oskotsky
+I'm a student at SFSU working on my own personal project. This project is written in java utilizing a mysql database. I am also applying the model, view, controller
+methodology to the way that my program is structured. The UI is built using Swing and JFreeChart.
 
 Progress Update #1:
 - Created final layout design -> https://www.figma.com/file/QNV0yBg3CwPajPVg8mleA4/Expense-Manager-Proj-Layout?node-id=0%3A1
