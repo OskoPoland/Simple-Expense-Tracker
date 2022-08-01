@@ -39,3 +39,12 @@ Goals #5:
 - Start working on the expense frame and figure out how it will be organized
 - Continue looking into the JChart module to create the expense chart and decide on it's features and how it will fit in with the MVC model
 
+Prog Update #6 8/1/2022:
+- Continuing to work on the expense gui with an idea formulating and a structure figured out
+- Added some more functionality to the data controls to help the expense gui such as getting categories and total costs from the database
+
+Goals #6: 
+- Continue working on the expense GUI 
+- Find some money to get the JFreeChart($50) dev guide so I have some way of actually implementing the charts I want to use
+- If I have time then decide on what to start putting into the chart controller if anything
+
