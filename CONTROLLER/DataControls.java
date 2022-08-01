@@ -1,7 +1,11 @@
 package CONTROLLER;
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 //Look here for most info https://www3.ntu.edu.sg/home/ehchua/programming/java/JDBC_Basic.html
+
+import com.mysql.cj.x.protobuf.MysqlxPrepare.Prepare;
 
 public class DataControls {
     //DB Connection URL: jdbc:mysql://localhost:3306/expenseTracking?allowPublicKeyRetrieval=true&useSSL=false&serverTimezone=PST
@@ -16,8 +20,8 @@ public class DataControls {
     //Create statment to execute SQL query
     private Statement stmt = null;
 
-    //User verified key for sql queries
-    private String authKey;
+    //Set on login and used for all other functions
+    private int ID;
 
     //createConnection: establishes connection to local host that is hosting the server
     private Connection createConnection() {
@@ -62,11 +66,11 @@ public class DataControls {
             PreparedStatement prpSt = conn.prepareStatement(queryCommand);
             prpSt.setString(1, username);
             prpSt.setString(2, password);
-
             ResultSet rset = prpSt.executeQuery();
-
-            while(rset.next()) {return true;};
-
+            while(rset.next()) {
+                ID = rset.getInt("UID");
+                return true;
+            };
             return false;
         } catch (SQLException sqle) {
             sqle.printStackTrace();
@@ -101,6 +105,8 @@ public class DataControls {
             sqle.printStackTrace();
         }
     }
+
+    public int getID() {return ID;};
 
     //verifyUsername: verifies the username of the user
     private boolean verifyUsername(String username) {
@@ -140,13 +146,21 @@ public class DataControls {
     } 
 
     //addExpense: adds an expense to the SQL database
-    public void addExpense(String expenseName, Double expenseAmount, int ID) {
-        String addExpenseQuery = "INSERT INTO Expenses ( UID, EXPENSE, EXPENSE_COST) VALUES (?, ?, ?) ";
+    // - want to add categories as well to make organization easier.
+    // - categories will be added to make adding expenses easier in the sense that there is a unique name but it belongs in a common cat
+    public void addExpense(String expenseName, Float expenseAmount, int ID, String category) {
+        String addExpenseQuery = "INSERT INTO Expenses ( UID, EXPENSE, EXPENSE_COST, DATE, CATEGORY) VALUES (?, ?, ?, ?, ?) ";
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("uuuu-mm-dd");
+        LocalDate date = LocalDate.now();
+        String dateStr = dtf.format(date);
+
         try {
             PreparedStatement prpSt = conn.prepareStatement(addExpenseQuery);
             prpSt.setInt(1, ID);
             prpSt.setString(2, expenseName);
             prpSt.setDouble(3, expenseAmount);
+            prpSt.setString(4, dateStr);
+            prpSt.setString(5, category);
             prpSt.executeUpdate();            
         } catch (SQLException sqle) {
             sqle.printStackTrace();
@@ -168,47 +182,60 @@ public class DataControls {
         }
     }
 
-    
-    public Float retreiveTotalCosts(String setMonth) {
-        Float returnAmount = 0f;
-        //Creating the query
-        String totalExpenseQuery = "SELECT expense_name, amount WHERE auth_id=" + authKey + " FROM " + setMonth;
-        System.out.println("The command is: " + totalExpenseQuery);
+    //This should use the month dates on input to organize because this is for the monthly expense JChart
+    public Map<String, Float> createDataSet() {
+        Map<String, Float> expData = new HashMap<String, Float>();
+        String getDataQuery = "SELECT DATE, EXPENSE_COST FROM expenses";
         try {
-             ResultSet rset = stmt.executeQuery(totalExpenseQuery);
-            //iterate through result set
+            ResultSet rset = stmt.executeQuery(getDataQuery);
             while(rset.next()) {
-                returnAmount += rset.getFloat("amount");
+                if (expData.containsKey(rset.getString("DATE"))) {
+                    expData.put(dateTrimmer(rset.getString("DATE"),"m"), expData.get(dateTrimmer(rset.getString("DATE"), "m") + rset.getFloat("EXPENSE_COST")));
+                } else {
+                    expData.put(dateTrimmer(rset.getString("DATE"), "m"), rset.getFloat("EXPENSE_COST"));
+                }
             }
-                return returnAmount;
+            return expData;
         } catch (SQLException sqle) {
             sqle.printStackTrace();
-            return returnAmount;
+            return null;
         }
     }
 
-    //retrieveExpenses: will return expenses and their costs accounting for repeat entries
-    // - at some point should be able to limit the search area to a specific month and year
-    public Map<String, Float> retrieveExpenses(int ID, int amountOfExpenses) {
-        Map<String, Float> tempMap = new HashMap<String, Float>();
+    private String dateTrimmer(String date, String parseFor) {
+        String[] tempDate = date.split("-");
+        if (parseFor == "y") {
+            return tempDate[0];
+        } else if (parseFor == "m") {
+            return tempDate[1];
+        } else if (parseFor == "d") {
+            return tempDate[2];
+        } else {
+            return null;
+        }
+    }
 
-        String retrievalQuery = "SELECT EXPENSE_NAME, COST FROM Expenses WHERE ID=" + ID;
-        
-        try {
-            ResultSet rset = stmt.executeQuery(retrievalQuery);
+
+    //Will return all categories that will be used in expense GUI combo box
+    public Object[] getCategories(int ID) {
+        ArrayList<String> tempCats = new ArrayList<String>();
+        String catQuery = "SELECT CATEGORY FROM expenses WHERE UID = ?";
+       try {
+            PreparedStatement prpSt = conn.prepareStatement(catQuery);
+            prpSt.setInt(1, ID);
+            ResultSet rset = prpSt.executeQuery();
             while(rset.next()) {
-                if (tempMap.containsKey(rset.getString("EXPENSE"))) {
-                    Float tempVal = tempMap.get(rset.getString("EXPENSE"));
-                    tempVal += rset.getFloat("COST");
-                    tempMap.replace(rset.getString("EXPENSE"), rset.getFloat("COST"));
+                if (tempCats.contains(rset.getString("CATEGORY"))) {
+                    continue;
                 } else {
-                    tempMap.put(rset.getString("EXPENSE"), rset.getFloat("COST"));
+                    tempCats.add(rset.getString("CATEGORY"));
                 }
-            }
-            return tempMap;
+            } 
+            Object[] returnCats = tempCats.toArray();
+            return returnCats;
         } catch (SQLException sqle) {
             sqle.printStackTrace();
-            return tempMap;
+            return null;
         }
     }
 
