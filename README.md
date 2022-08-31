@@ -48,3 +48,9 @@ Goals #6:
 - Find some money to get the JFreeChart($50) dev guide so I have some way of actually implementing the charts I want to use
 - If I have time then decide on what to start putting into the chart controller if anything
 
+Prog Update #7 8/31/2022
+- Complete reorganization of all files so that they are in the stylistically correct locations. I.e. source code is in project/source
+- Complete refactoring of the DataController class
+- Addition of some Junit tests for DataController.java
+- Refactoring of view classes to come upong completion of tests for DataController.java
+
